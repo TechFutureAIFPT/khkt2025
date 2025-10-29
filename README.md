@@ -45,545 +45,179 @@
 
   ---
 
-  ## 🏗️ Sơ đồ kiến trúc hệ thống
+  ## 🏗️ Sơ Đồ Tổng Thể Hệ Thống HR Support
 
-  ### **📋 Sơ đồ tổng quan chức năng hệ thống**
+  ### **🎯 LƯU ĐỒ TỔNG QUAN PHẦN MỀM HỖ TRỢ TUYỂN DỤNG NHÂN SỰ**
 
   ```
-                      HỆ THỐNG HỖ TRỢ TUYỂN DỤNG NHÂN SỰ
-
-      ┌─────────────┐       ┌──────────────┐       ┌─────────────┐
-      │   Nhập JD   │  ───▶ │  Cài đặt     │  ───▶ │   Tải CV    │
-      │(Job Descr.) │       │tiêu chí &    │       │ (Upload CV) │
-      └─────────────┘       │  trọng số    │       └──────┬──────┘
-                            └──────────────┘              │
-                                    │                     │
-                                    ▼                     ▼
-                            ┌──────────────┐       ┌─────────────┐
-                            │   Phân tích  │  ◀──  │  Trích xuất │
-                            │      AI      │       │    văn bản  │
-                            └──────┬───────┘       └─────────────┘
+                    ┌─────────────────────────────────────────────────────────┐
+                    │          HỆ THỐNG HỖ TRỢ TUYỂN DỤNG NHÂN SỰ            │
+                    │              (HR SUPPORT SYSTEM)                       │
+                    └─────────────────────┬───────────────────────────────────┘
+                                        │
+                    ┌───────────────────────────────────────────────────────────┐
+                    │                 🔐 XÁC THỰC NGƯỜI DÙNG                   │
+                    │              • Đăng nhập Gmail                          │
+                    │              • Firebase Authentication                   │
+                    │              • Quản lý phiên làm việc                   │
+                    └─────────────────────┬─────────────────────────────────────┘
+                                        │
+          ┌─────────────────────────────┼─────────────────────────────┐
+          │                             │                             │
+          ▼                             ▼                             ▼
+    ┌──────────────┐           ┌──────────────┐            ┌──────────────┐
+    │   📋 NHẬP    │           │  ⚙️ CẤU HÌNH │            │  📁 TẢI LÊN  │
+    │ JOB DESCRIP  │           │   HỆ THỐNG   │            │      CV      │
+    │   TION (JD)  │           │              │            │              │
+    └──────┬───────┘           └──────┬───────┘            └──────┬───────┘
+           │                          │                           │
+           │   ┌──────────────────────┼──────────────────────────┘
+           │   │                      │
+           ▼   ▼                      ▼
+    ┌─────────────────┐    ┌─────────────────┐         ┌─────────────────┐
+    │ 🎯 XỬ LÝ & PHÂN │    │ 📊 THIẾT LẬP    │         │ 🔍 TRÍCH XUẤT   │
+    │   TÍCH YÊU CẦU  │    │   TRỌNG SỐ      │         │    VĂN BẢN     │
+    │                 │    │                 │         │                 │
+    │ • Phân tích JD  │    │ • 8 Tiêu chí   │         │ • PDF Parser    │
+    │ • Tách kỹ năng  │    │ • Điều chỉnh %  │         │ • Word Reader   │
+    │ • Yêu cầu kinh  │    │ • Hard Filter   │         │ • OCR (Images)  │
+    │   nghiệm        │    │ • Soft Filter   │         │ • Excel Reader  │
+    └─────────┬───────┘    └─────────┬───────┘         └─────────┬───────┘
+              │                      │                           │
+              └──────────────────────┼───────────────────────────┘
+                                   │
+                                   ▼
+                    ┌─────────────────────────────────────┐
+                    │       🤖 BỘ PHÂN TÍCH AI           │
+                    │    (Google Gemini Integration)     │
+                    │                                     │
+                    │ ┌─────────────┐ ┌─────────────────┐ │
+                    │ │ Phân tích   │ │ So khớp kỹ năng │ │
+                    │ │ nội dung CV │ │ với yêu cầu JD  │ │
+                    │ └─────────────┘ └─────────────────┘ │
+                    │ ┌─────────────┐ ┌─────────────────┐ │
+                    │ │ Đánh giá    │ │ Xác thực học    │ │
+                    │ │ kinh nghiệm │ │ vấn & chứng chỉ │ │
+                    │ └─────────────┘ └─────────────────┘ │
+                    └─────────────────┬───────────────────┘
+                                    │
+                                    ▼
+              ┌─────────────────────────────────────────────────────────┐
+              │              📈 HỆ THỐNG CHẤM ĐIỂM                      │
+              │           (Deterministic Scoring Engine)                │
+              │                                                         │
+              │  🎯 JD Fit (25%)     💼 Experience (20%)               │
+              │  🏢 Projects (15%)   🎓 Education (10%)                │
+              │  🏆 Recency (10%)    🛠️ Soft Skills (10%)             │
+              │  💎 Quality (5%)     📜 Certificates (5%)             │
+              │                                                         │
+              │  ⚠️ ĐIỂM PHẠT: Gap Penalty + Format Penalty           │
+              │                                                         │
+              │  📊 CÔNG THỨC: Σ(trọng_số × điểm_thành_phần) - phạt   │
+              └─────────────────────┬───────────────────────────────────┘
                                   │
                                   ▼
-      ┌─────────────┐       ┌──────────────┐       ┌─────────────┐
-      │   Xuất dữ   │  ◀──  │  Xếp hạng    │  ◀──  │  Chấm điểm  │
-      │    liệu     │       │  ứng viên    │       │   tự động   │
-      └──────┬──────┘       └──────┬───────┘       └──────┬──────┘
-            │                     │                     │
-            ▼                     ▼                     ▼
-      ┌─────────────┐       ┌──────────────┐       ┌─────────────┐
-      │  Lưu trữ &  │       │ Hiển thị     │       │   So sánh   │
-      │   Báo cáo   │       │  kết quả     │       │  ứng viên   │
-      └─────────────┘       └──────────────┘       └─────────────┘
-      └─────────────────────────────────────────────────────────────────────────┘
-                                          │
-      ┌─────────────────────────────────────────────────────────────────────────┐
-      │                       MODULE QUẢN LÝ TẬP TIN CV                        │
-      │                      (CV File Management Module)                       │
-      │  • Tải lên CV          • Xác thực định dạng       • Trích xuất văn bản │
-      │  • Upload CV           • Format Validation        • Text Extraction    │
-      └─────────────────────────────────────────────────────────────────────────┘
-                                          │
-      ┌─────────────────────────────────────────────────────────────────────────┐
-      │                     MODULE PHÂN TÍCH TRÍ TUỆ NHÂN TẠO                  │
-      │                     (AI Analysis Module)                               │
-      │  • Phân tích kỹ năng   • Đánh giá kinh nghiệm    • Xác thực học vấn    │
-      │  • Skill Analysis      • Experience Evaluation   • Education Validation│
-      └─────────────────────────────────────────────────────────────────────────┘
-                                          │
-      ┌─────────────────────────────────────────────────────────────────────────┐
-      │                        MODULE CHẤM ĐIỂM TỰ ĐỘNG                        │
-      │                      (Automated Scoring Module)                        │
-      │  • Tính điểm trọng số  • Áp dụng tiêu chí lọc    • Xếp hạng ứng viên   │
-      │  • Weight Calculation  • Filter Application      • Candidate Ranking   │
-      └─────────────────────────────────────────────────────────────────────────┘
-                                          │
+          ┌───────────────────────────────────────────────────────────────┐
+          │                🏆 XẾP HẠNG & LỌC ỨNG VIÊN                    │
+          │                                                               │
+          │  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐   │
+          │  │ Xếp hạng     │  │ Lọc theo     │  │ So sánh chi tiết  │   │
+          │  │ theo điểm    │  │ tiêu chí     │  │ giữa ứng viên     │   │
+          │  │              │  │              │  │                   │   │
+          │  │ • Grade A    │  │ • Điểm số    │  │ • Điểm mạnh/yếu   │   │
+          │  │ • Grade B    │  │ • Kinh nghiệm│  │ • Khuyến nghị     │   │
+          │  │ • Grade C    │  │ • Kỹ năng    │  │ • Ranking visual  │   │
+          │  └──────────────┘  └──────────────┘  └───────────────────┘   │
+          └─────────────────────┬─────────────────────────────────────────┘
+                              │
+              ┌───────────────────────────────────────────────────┐
+              │                                                   │
+              ▼                                                   ▼
+    ┌─────────────────┐                                ┌─────────────────┐
+    │  ❓ TẠO CÂU HỎI │                                │  📊 BÁO CÁO &   │
+    │   PHỎNG VẤN     │                                │    THỐNG KÊ     │
+    │                 │                                │                 │
+    │ • General Mode  │                                │ • Dashboard     │
+    │ • Specific Mode │                                │ • Export Excel  │
+    │ • Compare Mode  │                                │ • Export PDF    │
+    │ • AI Generated  │                                │ • Lịch sử phân  │
+    └─────────┬───────┘                                │   tích          │
+              │                                        └─────────┬───────┘
+              │                                                  │
+              └──────────────────┬───────────────────────────────┘
+                                │
+                                ▼
+                  ┌─────────────────────────────────────┐
+                  │       💾 LƯU TRỮ & ĐỒNG BỘ         │
+                  │                                     │
+                  │ ┌─────────────┐ ┌─────────────────┐ │
+                  │ │ Local Cache │ │ Firebase Cloud  │ │
+                  │ │ (100 items) │ │ Sync            │ │
+                  │ │ 7 days TTL  │ │ Cross-device    │ │
+                  │ └─────────────┘ └─────────────────┘ │
+                  │                                     │
+                  │ 🔒 BẢO MẬT: Encryption + Access    │
+                  │                Control              │
+                  └─────────────────────────────────────┘
 
-      ┌─────────────────────────────────────────────────────────────────────────┐
-      │                      MODULE BÁO CÁO VÀ THỐNG KÊ                        │
-      │                    (Reporting & Analytics Module)                      │
-      │  • Báo cáo chi tiết    • Thống kê hiệu suất      • Xuất dữ liệu        │
-      │  • Detailed Reports    • Performance Stats       • Data Export         │
-      └─────────────────────────────────────────────────────────────────────────┘
-                                          │
-      ┌─────────────────────────────────────────────────────────────────────────┐
-      │                       MODULE LƯU TRỮ VÀ ĐỒNG BỘ                       │
-      │                     (Storage & Synchronization Module)                 │
-      │  • Lưu trữ đám mây     • Đồng bộ dữ liệu         • Bảo mật thông tin   │
-      │  • Cloud Storage       • Data Synchronization    • Data Security       │
-      └─────────────────────────────────────────────────────────────────────────┘
+                  ┌─────────────────────────────────────┐
+                  │     📈 GIÁM SÁT HIỆU SUẤT          │
+                  │                                     │
+                  │ • Vercel Analytics                  │
+                  │ • Web Vitals (CLS, INP, FCP...)    │
+                  │ • Performance Monitor              │
+                  │ • Real-time Tracking               │
+                  └─────────────────────────────────────┘
 
-      ┌─────────────────────────────────────────────────────────────────────────┐
-      │                          CƠ SỞ DỮ LIỆU HỖ TRỢ                         │
-      │                        (Supporting Database)                           │
-      │  • Dữ liệu ngành nghề  • Dữ liệu trường học     • Mẫu câu hỏi         │
-      │  • Industry Data       • Institution Data       • Question Templates   │
-      └─────────────────────────────────────────────────────────────────────────┘
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │                        🛠️ CÔNG NGHỆ SỬ DỤNG                        │
+    │                                                                     │
+    │  Frontend: React 19.1.1 + TypeScript + Tailwind CSS + Vite        │
+    │  AI Engine: Google Gemini API (Multi-key Support)                  │
+    │  OCR: Tesseract.js + PDF.js + Mammoth.js                          │
+    │  Database: Firebase Firestore + Local Storage                      │
+    │  Analytics: Vercel Analytics + Speed Insights                      │
+    │  Authentication: Firebase Auth (Gmail Login)                        │
+    └─────────────────────────────────────────────────────────────────────┘
+
+                             ┌──────────────────┐
+                             │   👤 NGƯỜI DÙNG  │
+                             │                  │
+                             │ • HR Recruiter   │
+                             │ • Hiring Manager │
+                             │ • Team Lead      │
+                             └──────────────────┘
   ```
 
-  ### **🌳 Sơ đồ cây chức năng tổng hợp**
+  ### **🔄 LUỒNG XỬ LÝ CHÍNH (Main Processing Flow)**
 
   ```
-  HỆ THỐNG HỖ TRỢ TUYỂN DỤNG NHÂN SỰ (HR Support System)
-  │
-  ├── 🔐 ĐĂNG NHẬP & XÁC THỰC (Authentication)
-  │   ├── Gmail Login
-  │   ├── Firebase Auth
-  │   └── Session Management
-  │
-  ├── 📋 QUẢN LÝ JOB DESCRIPTION
-  │   ├── Nhập JD (Job Description Input)
-  │   ├── Phân tích yêu cầu (Requirement Analysis)
-  │   └── Lưu trữ JD (JD Storage)
-  │
-  ├── ⚙️ CẤU HÌNH HỆ THỐNG
-  │   ├── Cài đặt tiêu chí lọc (Filter Criteria)
-  │   │   ├── Hard Filters
-  │   │   └── Soft Filters
-  │   ├── Trọng số chấm điểm (Scoring Weights)
-  │   │   ├── JD Fit (20%)
-  │   │   ├── Experience (20%)
-  │   │   ├── Technical Skills (15%)
-  │   │   ├── Education (10%)
-  │   │   ├── Soft Skills (10%)
-  │   │   ├── Achievements (8%)
-  │   │   ├── Languages (7%)
-  │   │   └── Personal Info (5%)
-  │   └── Penalty Settings
-  │       ├── Gap Penalty (-5%)
-  │       └── Format Penalty (-3%)
-  │
-  ├── � QUẢN LỶ CV (CV Management)
-  │   ├── Upload CV Files
-  │   │   ├── 📄 PDF Support
-  │   │   ├── 📝 Word Documents (.doc, .docx)
-  │   │   ├── 📊 Excel Files (.xlsx, .xls)
-  │   │   └── 🖼️ Images (OCR enabled)
-  │   ├── Validation & Processing
-  │   │   ├── Format Check
-  │   │   ├── File Size Validation
-  │   │   └── Content Extraction
-  │   └── Text Extraction
-  │       ├── PDF.js Parser
-  │       ├── Mammoth.js (Word)
-  │       └── Tesseract.js OCR
-  │
-  ├── 🤖 PHÂN TÍCH AI (AI Analysis Engine)
-  │   ├── Google Gemini Integration
-  │   │   ├── Multi-API Key Support
-  │   │   ├── Rate Limiting
-  │   │   └── Fallback Mechanisms
-  │   ├── Content Analysis
-  │   │   ├── Skill Matching
-  │   │   ├── Experience Evaluation
-  │   │   ├── Education Validation
-  │   │   ├── Language Detection
-  │   │   └── Achievement Recognition
-  │   ├── JD Matching
-  │   │   ├── Requirement Alignment
-  │   │   ├── Relevance Scoring
-  │   │   └── Gap Analysis
-  │   └── Quality Assessment
-  │       ├── CV Structure
-  │       ├── Content Quality
-  │       └── Completeness Check
-  │
-  ├── 📊 HỆ THỐNG CHẤM ĐIỂM (Scoring System)
-  │   ├── Deterministic Scoring Engine
-  │   │   ├── Weight Calculation
-  │   │   ├── Score Computation
-  │   │   ├── Penalty Application
-  │   │   └── Final Score Generation
-  │   ├── Hard Filter Validation
-  │   │   ├── Experience Requirements
-  │   │   ├── Education Level
-  │   │   ├── Language Skills
-  │   │   ├── Certifications
-  │   │   └── Location Preferences
-  │   ├── Grade Assignment
-  │   │   ├── Grade A (90-100)
-  │   │   ├── Grade B (70-89)
-  │   │   ├── Grade C (<70 or Hard Filter Fail)
-  │   │   └── Auto Grade C for Hard Filter Failures
-  │   └── Confidence Scoring
-  │       ├── Coverage Assessment
-  │       ├── Quality Indicators
-  │       └── Relevance Signals
-  │
-  ├── 🏆 XẾP HẠNG & LỌC ỨNG VIÊN (Ranking & Filtering)
-  │   ├── Candidate Ranking
-  │   │   ├── Score-based Sorting
-  │   │   ├── Grade Grouping
-  │   │   └── Filter Application
-  │   ├── Advanced Filtering
-  │   │   ├── Score Range Filter
-  │   │   ├── Experience Filter
-  │   │   ├── Skills Filter
-  │   │   └── Education Filter
-  │   └── Comparison Tools
-  │       ├── Side-by-side Compare
-  │       ├── Strengths/Weaknesses
-  │       └── Recommendation Engine
-  │
-
-  ├── 📈 BÁO CÁO & THỐNG KÊ (Reports & Analytics)
-  │   ├── Dashboard Analytics
-  │   │   ├── Candidate Statistics
-  │   │   ├── Score Distribution
-  │   │   ├── Filter Usage Stats
-  │   │   └── Performance Metrics
-  │   ├── Detailed Reports
-  │   │   ├── Individual Candidate Reports
-  │   │   ├── Batch Analysis Reports
-  │   │   ├── Comparison Reports
-  │   │   └── Summary Reports
-  │   ├── Data Export
-  │   │   ├── Excel Export
-  │   │   ├── PDF Reports
-  │   │   ├── CSV Data
-  │   │   └── Custom Formats
-  │   └── Historical Analysis
-  │       ├── Trend Analysis
-  │       ├── Performance Tracking
-  │       └── Success Rate Metrics
-  │
-  ├── 💾 LƯU TRỮ & ĐỒNG BỘ (Storage & Sync)
-  │   ├── Local Storage
-  │   │   ├── Analysis Cache (100 entries)
-  │   │   ├── User Preferences
-  │   │   └── Temporary Data
-  │   ├── Firebase Cloud Storage
-  │   │   ├── Cross-device Sync
-  │   │   ├── Real-time Updates
-  │   │   ├── Data Backup
-  │   │   └── Team Collaboration
-  │   ├── Cache Management
-  │   │   ├── Hit Rate Optimization
-  │   │   ├── TTL Management (7 days)
-  │   │   ├── Smart Invalidation
-  │   │   └── Performance Monitoring
-  │   └── Data Security
-  │       ├── Encryption
-  │       ├── Access Control
-  │       └── Privacy Protection
-  │
-  ├── 📊 HIỆU SUẤT & GIÁM SÁT (Performance & Monitoring)
-  │   ├── Vercel Analytics
-  │   │   ├── User Behavior Tracking
-  │   │   ├── Page Performance
-  │   │   └── Conversion Metrics
-  │   ├── Speed Insights
-  │   │   ├── Real-time Performance
-  │   │   ├── Core Web Vitals
-  │   │   └── Performance Optimization
-  │   ├── Web Vitals Monitoring
-  │   │   ├── CLS (Cumulative Layout Shift)
-  │   │   ├── INP (Interaction to Next Paint)
-  │   │   ├── FCP (First Contentful Paint)
-  │   │   ├── LCP (Largest Contentful Paint)
-  │   │   └── TTFB (Time to First Byte)
-  │   └── Development Tools
-  │       ├── Performance Monitor
-  │       ├── Debug Console
-  │       └── Error Tracking
-  │
-  └── 🔧 TIỆN ÍCH & HỖ TRỢ (Utilities & Support)
-      ├── Data Support Services
-      │   ├── Industry Database
-      │   ├── Institution Rankings
-      │   ├── Skills Library
-      │   └── Question Templates
-      ├── User Interface
-      │   ├── Responsive Design
-      │   ├── Dark/Light Mode
-      │   ├── Multi-language Support
-      │   └── Accessibility Features
-      ├── API Integration
-      │   ├── RESTful Services
-      │   ├── Real-time Updates
-      │   └── Error Handling
-      └── Support & Documentation
-          ├── User Guides
-          ├── API Documentation
-          ├── Troubleshooting
-          └── Community Support
-  ```
-
-  ### **�📊 Tổng quan kiến trúc**
-
-  ```mermaid
-  graph TB
-      subgraph "🖥️ Frontend Layer"
-          UI[React 19.1.1 + TypeScript]
-          Router[React Router]
-          State[State Management]
-          Cache[Local Cache]
-      end
-      
-      subgraph "🔄 Business Logic Layer"
-          CVProcessor[CV Processing Engine]
-          AIEngine[AI Analysis Engine]
-          Scoring[Deterministic Scoring]
-          Questions[Interview Questions]
-      end
-      
-      subgraph "🤖 AI Services"
-          Gemini[Google Gemini AI]
-          OCR[Tesseract.js OCR]
-          TextExtract[Text Extraction]
-      end
-      
-      subgraph "☁️ Backend Services"
-          Firebase[Firebase]
-          Auth[Authentication]
-          Firestore[Firestore Database]
-          Storage[Cloud Storage]
-      end
-      
-      subgraph "📈 Analytics & Monitoring"
-          Vercel[Vercel Analytics]
-          WebVitals[Web Vitals]
-          Performance[Performance Monitor]
-      end
-      
-      UI --> CVProcessor
-      UI --> Questions
-      CVProcessor --> AIEngine
-      CVProcessor --> OCR
-      AIEngine --> Gemini
-      AIEngine --> Scoring
-      Questions --> Gemini
-      
-      UI --> Auth
-      Auth --> Firebase
-      State --> Firestore
-      Cache --> Firestore
-      
-      UI --> Vercel
-      UI --> WebVitals
-      UI --> Performance
-      
-      style UI fill:#e1f5fe
-      style Gemini fill:#fff3e0
-      style Firebase fill:#ffebee
-      style Vercel fill:#f3e5f5
-  ```
-
-  ### **🔄 Data Flow Architecture**
-
-  ```mermaid
-  sequenceDiagram
-      participant User
-      participant UI as Frontend UI
-      participant Processor as CV Processor
-      participant AI as Gemini AI
-      participant Cache as Local Cache
-      participant FB as Firebase
-      
-      User->>UI: Upload CV Files
-      UI->>Processor: Process Files
-      
-      Processor->>Cache: Check Cache
-      alt Cache Hit
-          Cache-->>UI: Return Cached Results
-      else Cache Miss
-          Processor->>AI: Analyze CV Content
-          AI-->>Processor: Analysis Results
-          Processor->>Cache: Store Results
-          Processor-->>UI: Return Results
-      end
-      
-      UI->>FB: Sync to Cloud (Optional)
-      FB-->>UI: Sync Confirmation
-      
-      User->>UI: Generate Interview Questions
-      UI->>AI: Request Questions
-      AI-->>UI: Return Questions
-      
-      UI->>User: Display Results & Questions
-  ```
-
-  ### **🏛️ Component Architecture**
-
-  ```mermaid
-  graph TD
-      subgraph "📱 Application Layer"
-          App[App.tsx]
-          Router[Router Configuration]
-      end
-      
-      subgraph "📄 Pages"
-          Login[LoginPage]
-          Dashboard[DashboardPage]
-          Process[ProcessPage]
-          History[HistoryPage]
-          Analytics[AnalyticsPage]
-      end
-      
-      subgraph "🧩 Layout Components"
-          Navbar[Navbar]
-          Sidebar[Sidebar]
-          Footer[Footer]
-      end
-      
-      subgraph "🎯 Core Modules"
-          CVUpload[CVUpload]
-          Analysis[AnalysisResults]
-          Questions[InterviewQuestions]
-          Chatbot[ChatbotPanel]
-          Config[WeightsConfig]
-      end
-      
-      subgraph "🎨 UI Components"
-          Cards[CandidateCard]
-          Modals[Various Modals]
-          Forms[Input Forms]
-          Charts[Analytics Charts]
-          Filters[Filter Panels]
-      end
-      
-      App --> Router
-      Router --> Pages
-      Pages --> Layout
-      Pages --> Core
-      Core --> UI
-      Layout --> UI
-      
-      style App fill:#e8f5e8
-      style Core fill:#fff3e0
-      style UI fill:#e3f2fd
-  ```
-
-  ### **⚙️ Services Architecture**
-
-  ```mermaid
-  graph LR
-      subgraph "🔧 Core Services"
-          Gemini[geminiService.ts]
-          Sync[dataSyncService.ts]
-          Cache[analysisCache.ts]
-          Interview[interviewQuestionService.ts]
-      end
-      
-      subgraph "📊 Processing Services"
-          OCR[ocrService.ts]
-          Scoring[deterministicScoring.ts]
-          Match[matchEngine.ts]
-          Extract[requirementsExtractor.ts]
-      end
-      
-      subgraph "💾 Data Services"
-          History[historyService.ts]
-          UserProfile[userProfileService.ts]
-          Audit[auditService.ts]
-      end
-      
-      subgraph "🛠️ Utility Services"
-          Industries[industryDetector.ts]
-          Institutions[institutionsData.ts]
-          Worker[scoringWorker.ts]
-      end
-      
-      Gemini --> OCR
-      Gemini --> Scoring
-      Scoring --> Match
-      Cache --> History
-      Sync --> UserProfile
-      Interview --> Gemini
-      
-      style Gemini fill:#fff3e0
-      style Cache fill:#e8f5e8
-      style Scoring fill:#fce4ec
-  ```
-
-  ### **📱 User Interface Flow**
-
-  ```mermaid
-  flowchart TD
-      Start([👤 Người dùng truy cập]) --> Login{🔐 Đã đăng nhập?}
-      
-      Login -->|Chưa| LoginPage[📋 Trang đăng nhập]
-      LoginPage --> Auth[🔑 Xác thực Gmail]
-      Auth --> Dashboard
-      
-      Login -->|Rồi| Dashboard[🏠 Dashboard chính]
-      
-      Dashboard --> Upload[📤 Upload CV]
-      Dashboard --> History[📚 Lịch sử]
-      Dashboard --> Analytics[📊 Thống kê]
-      Dashboard --> Config[⚙️ Cấu hình]
-      
-      Upload --> Process[🔄 Xử lý CV]
-      Process --> AIAnalysis[🤖 Phân tích AI]
-      AIAnalysis --> Results[📋 Kết quả]
-      
-      Results --> Questions[❓ Tạo câu hỏi]
-      Results --> Export[📤 Xuất dữ liệu]
-      Results --> Compare[⚖️ So sánh ứng viên]
-      
-      Questions --> Interview[🎯 Câu hỏi phỏng vấn]
-      
-      style Start fill:#e8f5e8
-      style Dashboard fill:#e3f2fd
-      style AIAnalysis fill:#fff3e0
-      style Results fill:#fce4ec
-  ```
-
-  ### **🔄 Data Processing Pipeline**
-
-  ```mermaid
-  graph TD
-      subgraph "📥 Input Processing"
-          FileUpload[File Upload]
-          FormatCheck[Format Validation]
-          TextExtract[Text Extraction]
-      end
-      
-      subgraph "🧠 AI Processing"
-          ContentAnalysis[Content Analysis]
-          SkillMatching[Skill Matching]
-          ExperienceEval[Experience Evaluation]
-          EducationCheck[Education Validation]
-      end
-      
-      subgraph "📊 Scoring Engine"
-          WeightCalc[Weight Calculation]
-          ScoreCompute[Score Computation]
-          PenaltyApply[Penalty Application]
-          RankAssign[Rank Assignment]
-      end
-      
-      subgraph "💾 Output & Storage"
-          ResultFormat[Result Formatting]
-          CacheStore[Cache Storage]
-          CloudSync[Cloud Sync]
-          Display[UI Display]
-      end
-      
-      FileUpload --> FormatCheck
-      FormatCheck --> TextExtract
-      TextExtract --> ContentAnalysis
-      
-      ContentAnalysis --> SkillMatching
-      ContentAnalysis --> ExperienceEval  
-      ContentAnalysis --> EducationCheck
-      
-      SkillMatching --> WeightCalc
-      ExperienceEval --> WeightCalc
-      EducationCheck --> WeightCalc
-      
-      WeightCalc --> ScoreCompute
-      ScoreCompute --> PenaltyApply
-      PenaltyApply --> RankAssign
-      
-      RankAssign --> ResultFormat
-      ResultFormat --> CacheStore
-      ResultFormat --> CloudSync
-      ResultFormat --> Display
-      
-      style ContentAnalysis fill:#fff3e0
-      style ScoreCompute fill:#e8f5e8
-      style Display fill:#e3f2fd
+    Bước 1: Đăng nhập         Bước 2: Thiết lập        Bước 3: Upload CV
+         │                         │                        │
+         ▼                         ▼                        ▼
+  ┌──────────────┐          ┌──────────────┐         ┌──────────────┐
+  │ 🔐 Gmail     │ ────────▶│ ⚙️ Cấu hình  │────────▶│ 📁 Tải file │
+  │ Authentication│          │ trọng số     │         │ CV (multi    │
+  │              │          │ & tiêu chí   │         │ format)      │
+  └──────────────┘          └──────────────┘         └──────┬───────┘
+                                                           │
+  Bước 4: Trích xuất       Bước 5: Phân tích AI      Bước 6: Chấm điểm
+         ▲                         │                        │
+         │                         ▼                        ▼
+  ┌──────────────┐          ┌──────────────┐         ┌──────────────┐
+  │ 🔍 Text      │ ◀────────│ 🤖 Google    │────────▶│ 📊 8 Tiêu    │
+  │ Extraction   │          │ Gemini       │         │ chí + Phạt   │
+  │ (OCR/PDF)    │          │ Analysis     │         │ → Điểm cuối  │
+  └──────────────┘          └──────────────┘         └──────┬───────┘
+                                                           │
+  Bước 7: Kết quả          Bước 8: Tạo câu hỏi      Bước 9: Lưu trữ
+         ▲                         │                        │
+         │                         ▼                        ▼
+  ┌──────────────┐          ┌──────────────┐         ┌──────────────┐
+  │ 🏆 Ranking   │ ◀────────│ ❓ Interview │────────▶│ 💾 Cache +   │
+  │ & Comparison │          │ Questions    │         │ Firebase     │
+  │ Dashboard    │          │ Generation   │         │ Sync         │
+  └──────────────┘          └──────────────┘         └──────────────┘
   ```
 
   ---
@@ -1269,4 +903,3 @@
 
   </div>
 
- 
